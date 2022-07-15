@@ -2562,7 +2562,7 @@ namespace ImGui
     IMGUI_API ImDrawList*   GetForegroundDrawList(ImGuiViewport* viewport);                     // get foreground draw list for the given viewport. this draw list will be the last rendered one. Useful to quickly draw shapes/text over dear imgui contents.
 
     // Init
-    IMGUI_API void          Initialize();
+    IMGUI_API void          Initialize(ImGuiContext* ctx);
     IMGUI_API void          Shutdown(ImGuiContext* ctx);    // Since 1.60 this is a _private_ function. You can call DestroyContext() to destroy the context created by CreateContext().
 
     // NewFrame
@@ -2587,9 +2587,9 @@ namespace ImGui
     IMGUI_API ImGuiWindowSettings*  CreateNewWindowSettings(const char* name);
     IMGUI_API ImGuiWindowSettings*  FindWindowSettings(ImGuiID id);
     IMGUI_API ImGuiWindowSettings*  FindOrCreateWindowSettings(const char* name);
-    IMGUI_API void                  AddSettingsHandler(const ImGuiSettingsHandler* handler);
-    IMGUI_API void                  RemoveSettingsHandler(const char* type_name);
-    IMGUI_API ImGuiSettingsHandler* FindSettingsHandler(const char* type_name);
+    IMGUI_API void                  AddSettingsHandler(ImGuiContext* ctx, const ImGuiSettingsHandler* handler);
+    IMGUI_API void                  RemoveSettingsHandler(ImGuiContext* ctx, const char* type_name);
+    IMGUI_API ImGuiSettingsHandler* FindSettingsHandler(ImGuiContext* ctx, const char* type_name);
 
     // Scrolling
     IMGUI_API void          SetNextWindowScroll(const ImVec2& scroll); // Use -1.0f on one axis to leave as-is
@@ -2785,7 +2785,7 @@ namespace ImGui
     IMGUI_API void                  TableSaveSettings(ImGuiTable* table);
     IMGUI_API void                  TableResetSettings(ImGuiTable* table);
     IMGUI_API ImGuiTableSettings*   TableGetBoundSettings(ImGuiTable* table);
-    IMGUI_API void                  TableSettingsAddSettingsHandler();
+    IMGUI_API void                  TableSettingsAddSettingsHandler(ImGuiContext* ctx);
     IMGUI_API ImGuiTableSettings*   TableSettingsCreate(ImGuiID id, int columns_count);
     IMGUI_API ImGuiTableSettings*   TableSettingsFindByID(ImGuiID id);
 

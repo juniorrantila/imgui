@@ -3721,7 +3721,7 @@ ImGuiContext* ImGui::CreateContext(ImFontAtlas* shared_font_atlas)
     ImGuiContext* prev_ctx = GetCurrentContext();
     ImGuiContext* ctx = IM_NEW(ImGuiContext)(shared_font_atlas);
     SetCurrentContext(ctx);
-    Initialize();
+    Initialize(ctx);
     if (prev_ctx != NULL)
         SetCurrentContext(prev_ctx); // Restore previous context if any, else keep new one.
     return ctx;
@@ -4547,9 +4547,9 @@ void ImGui::NewFrame()
     CallContextHooks(&g, ImGuiContextHookType_NewFramePost);
 }
 
-void ImGui::Initialize()
+void ImGui::Initialize(ImGuiContext* ctx)
 {
-    ImGuiContext& g = *GImGui;
+    ImGuiContext& g = *ctx;
     IM_ASSERT(!g.Initialized && !g.SettingsLoaded);
 
     // Add .ini handle for ImGuiWindow type
@@ -4562,11 +4562,11 @@ void ImGui::Initialize()
         ini_handler.ReadLineFn = WindowSettingsHandler_ReadLine;
         ini_handler.ApplyAllFn = WindowSettingsHandler_ApplyAll;
         ini_handler.WriteAllFn = WindowSettingsHandler_WriteAll;
-        AddSettingsHandler(&ini_handler);
+        AddSettingsHandler(ctx, &ini_handler);
     }
 
     // Add .ini handle for ImGuiTable type
-    TableSettingsAddSettingsHandler();
+    TableSettingsAddSettingsHandler(ctx);
 
     // Create default viewport
     ImGuiViewportP* viewport = IM_NEW(ImGuiViewportP)();
@@ -11693,8 +11693,8 @@ void ImGui::UpdateSettings()
     if (!g.SettingsLoaded)
     {
         IM_ASSERT(g.SettingsWindows.empty());
-        if (g.IO.IniFilename)
-            LoadIniSettingsFromDisk(g.IO.IniFilename);
+        if (g.IO.IniFilename) // FIXME: Remove GImGui.
+            LoadIniSettingsFromDisk(GImGui, g.IO.IniFilename);
         g.SettingsLoaded = true;
     }
 
@@ -11766,23 +11766,23 @@ ImGuiWindowSettings* ImGui::FindOrCreateWindowSettings(const char* name)
     return CreateNewWindowSettings(name);
 }
 
-void ImGui::AddSettingsHandler(const ImGuiSettingsHandler* handler)
+void ImGui::AddSettingsHandler(ImGuiContext* ctx, const ImGuiSettingsHandler* handler)
 {
-    ImGuiContext& g = *GImGui;
-    IM_ASSERT(FindSettingsHandler(handler->TypeName) == NULL);
+    ImGuiContext& g = *ctx;
+    IM_ASSERT(FindSettingsHandler(ctx, handler->TypeName) == NULL);
     g.SettingsHandlers.push_back(*handler);
 }
 
-void ImGui::RemoveSettingsHandler(const char* type_name)
+void ImGui::RemoveSettingsHandler(ImGuiContext* ctx, const char* type_name)
 {
     ImGuiContext& g = *GImGui;
-    if (ImGuiSettingsHandler* handler = FindSettingsHandler(type_name))
+    if (ImGuiSettingsHandler* handler = FindSettingsHandler(ctx, type_name))
         g.SettingsHandlers.erase(handler);
 }
 
-ImGuiSettingsHandler* ImGui::FindSettingsHandler(const char* type_name)
+ImGuiSettingsHandler* ImGui::FindSettingsHandler(ImGuiContext* ctx, const char* type_name)
 {
-    ImGuiContext& g = *GImGui;
+    ImGuiContext& g = *ctx;
     const ImGuiID type_hash = ImHashStr(type_name);
     for (int handler_n = 0; handler_n < g.SettingsHandlers.Size; handler_n++)
         if (g.SettingsHandlers[handler_n].TypeHash == type_hash)
@@ -11799,21 +11799,21 @@ void ImGui::ClearIniSettings()
             g.SettingsHandlers[handler_n].ClearAllFn(&g, &g.SettingsHandlers[handler_n]);
 }
 
-void ImGui::LoadIniSettingsFromDisk(const char* ini_filename)
+void ImGui::LoadIniSettingsFromDisk(ImGuiContext* ctx, const char* ini_filename)
 {
     size_t file_data_size = 0;
     char* file_data = (char*)ImFileLoadToMemory(ini_filename, "rb", &file_data_size);
     if (!file_data)
         return;
     if (file_data_size > 0)
-        LoadIniSettingsFromMemory(file_data, (size_t)file_data_size);
+        LoadIniSettingsFromMemory(ctx, file_data, (size_t)file_data_size);
     IM_FREE(file_data);
 }
 
 // Zero-tolerance, no error reporting, cheap .ini parsing
-void ImGui::LoadIniSettingsFromMemory(const char* ini_data, size_t ini_size)
+void ImGui::LoadIniSettingsFromMemory(ImGuiContext* ctx, const char* ini_data, size_t ini_size)
 {
-    ImGuiContext& g = *GImGui;
+    ImGuiContext& g = *ctx;
     IM_ASSERT(g.Initialized);
     //IM_ASSERT(!g.WithinFrameScope && "Cannot be called between NewFrame() and EndFrame()");
     //IM_ASSERT(g.SettingsLoaded == false && g.FrameCount == 0);
@@ -11861,7 +11861,7 @@ void ImGui::LoadIniSettingsFromMemory(const char* ini_data, size_t ini_size)
                 continue;
             *type_end = 0; // Overwrite first ']'
             name_start++;  // Skip second '['
-            entry_handler = FindSettingsHandler(type_start);
+            entry_handler = FindSettingsHandler(ctx, type_start);
             entry_data = entry_handler ? entry_handler->ReadOpenFn(&g, entry_handler, name_start) : NULL;
         }
         else if (entry_handler != NULL && entry_data != NULL)

@@ -3443,7 +3443,7 @@ static void TableSettingsHandler_WriteAll(ImGuiContext* ctx, ImGuiSettingsHandle
     }
 }
 
-void ImGui::TableSettingsAddSettingsHandler()
+void ImGui::TableSettingsAddSettingsHandler(ImGuiContext* ctx)
 {
     ImGuiSettingsHandler ini_handler;
     ini_handler.TypeName = "Table";
@@ -3453,7 +3453,7 @@ void ImGui::TableSettingsAddSettingsHandler()
     ini_handler.ReadLineFn = TableSettingsHandler_ReadLine;
     ini_handler.ApplyAllFn = TableSettingsHandler_ApplyAll;
     ini_handler.WriteAllFn = TableSettingsHandler_WriteAll;
-    AddSettingsHandler(&ini_handler);
+    AddSettingsHandler(ctx, &ini_handler);
 }
 
 //-------------------------------------------------------------------------

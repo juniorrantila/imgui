@@ -23,7 +23,7 @@
 //  2021-10-06: Backup and restore modified ClipRect/Viewport.
 //  2021-09-21: Initial version.
 
-#include "imgui.h"
+#include "imgui_internal.h"
 #include "imgui_impl_sdlrenderer.h"
 #if defined(_MSC_VER) && _MSC_VER <= 1500 // MSVC 2008 or earlier
 #include <stddef.h>     // intptr_t
@@ -53,9 +53,9 @@ static ImGui_ImplSDLRenderer_Data* ImGui_ImplSDLRenderer_GetBackendData()
 }
 
 // Functions
-bool ImGui_ImplSDLRenderer_Init(SDL_Renderer* renderer)
+bool ImGui_ImplSDLRenderer_Init(ImGuiContext* ctx, SDL_Renderer* renderer)
 {
-    ImGuiIO& io = ImGui::GetIO();
+    ImGuiIO& io = ctx->IO;
     IM_ASSERT(io.BackendRendererUserData == NULL && "Already initialized a renderer backend!");
     IM_ASSERT(renderer != NULL && "SDL_Renderer not initialized!");
 

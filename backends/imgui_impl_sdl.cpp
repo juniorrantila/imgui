@@ -410,11 +410,11 @@ bool ImGui_ImplSDL2_InitForSDLRenderer(ImGuiContext* ctx, SDL_Window* window, SD
     return ImGui_ImplSDL2_Init(ctx, window, renderer);
 }
 
-void ImGui_ImplSDL2_Shutdown()
+void ImGui_ImplSDL2_Shutdown(ImGuiContext* ctx)
 {
-    ImGui_ImplSDL2_Data* bd = ImGui_ImplSDL2_GetBackendData();
+    ImGuiIO& io = ctx->IO;
+    ImGui_ImplSDL2_Data* bd = (ImGui_ImplSDL2_Data*)io.BackendPlatformUserData;
     IM_ASSERT(bd != NULL && "No platform backend to shutdown, or already shutdown?");
-    ImGuiIO& io = ImGui::GetIO();
 
     if (bd->ClipboardTextData)
         SDL_free(bd->ClipboardTextData);

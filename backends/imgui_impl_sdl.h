@@ -27,7 +27,7 @@ IMGUI_IMPL_API bool     ImGui_ImplSDL2_InitForVulkan(ImGuiContext* ctx, SDL_Wind
 IMGUI_IMPL_API bool     ImGui_ImplSDL2_InitForD3D(ImGuiContext* ctx, SDL_Window* window);
 IMGUI_IMPL_API bool     ImGui_ImplSDL2_InitForMetal(ImGuiContext* ctx, SDL_Window* window);
 IMGUI_IMPL_API bool     ImGui_ImplSDL2_InitForSDLRenderer(ImGuiContext* ctx, SDL_Window* window, SDL_Renderer* renderer);
-IMGUI_IMPL_API void     ImGui_ImplSDL2_Shutdown();
+IMGUI_IMPL_API void     ImGui_ImplSDL2_Shutdown(ImGuiContext* ctx);
 IMGUI_IMPL_API void     ImGui_ImplSDL2_NewFrame();
 IMGUI_IMPL_API bool     ImGui_ImplSDL2_ProcessEvent(const SDL_Event* event);
 

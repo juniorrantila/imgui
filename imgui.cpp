@@ -3732,8 +3732,7 @@ void ImGui::DestroyContext(ImGuiContext* ctx)
     ImGuiContext* prev_ctx = GetCurrentContext();
     if (ctx == NULL) //-V1051
         ctx = prev_ctx;
-    SetCurrentContext(ctx);
-    Shutdown();
+    Shutdown(ctx);
     SetCurrentContext((prev_ctx != ctx) ? prev_ctx : NULL);
     IM_DELETE(ctx);
 }
@@ -4581,10 +4580,10 @@ void ImGui::Initialize()
 }
 
 // This function is merely here to free heap allocations.
-void ImGui::Shutdown()
+void ImGui::Shutdown(ImGuiContext* ctx)
 {
     // The fonts atlas can be used prior to calling NewFrame(), so we clear it even if g.Initialized is FALSE (which would happen if we never called NewFrame)
-    ImGuiContext& g = *GImGui;
+    ImGuiContext& g = *ctx;
     if (g.IO.Fonts && g.FontAtlasOwnedByContext)
     {
         g.IO.Fonts->Locked = false;
@@ -4598,7 +4597,7 @@ void ImGui::Shutdown()
 
     // Save settings (unless we haven't attempted to load them: CreateContext/DestroyContext without a call to NewFrame shouldn't save an empty file)
     if (g.SettingsLoaded && g.IO.IniFilename != NULL)
-        SaveIniSettingsToDisk(g.IO.IniFilename);
+        SaveIniSettingsToDisk(ctx, g.IO.IniFilename);
 
     CallContextHooks(&g, ImGuiContextHookType_Shutdown);
 
@@ -11705,8 +11704,8 @@ void ImGui::UpdateSettings()
         g.SettingsDirtyTimer -= g.IO.DeltaTime;
         if (g.SettingsDirtyTimer <= 0.0f)
         {
-            if (g.IO.IniFilename != NULL)
-                SaveIniSettingsToDisk(g.IO.IniFilename);
+            if (g.IO.IniFilename != NULL) // FIXME: Remove GImGui.
+                SaveIniSettingsToDisk(GImGui, g.IO.IniFilename);
             else
                 g.IO.WantSaveIniSettings = true;  // Let user know they can call SaveIniSettingsToMemory(). user will need to clear io.WantSaveIniSettings themselves.
             g.SettingsDirtyTimer = 0.0f;
@@ -11882,15 +11881,15 @@ void ImGui::LoadIniSettingsFromMemory(const char* ini_data, size_t ini_size)
             g.SettingsHandlers[handler_n].ApplyAllFn(&g, &g.SettingsHandlers[handler_n]);
 }
 
-void ImGui::SaveIniSettingsToDisk(const char* ini_filename)
+void ImGui::SaveIniSettingsToDisk(ImGuiContext* ctx, const char* ini_filename)
 {
-    ImGuiContext& g = *GImGui;
+    ImGuiContext& g = *ctx;
     g.SettingsDirtyTimer = 0.0f;
     if (!ini_filename)
         return;
 
     size_t ini_data_size = 0;
-    const char* ini_data = SaveIniSettingsToMemory(&ini_data_size);
+    const char* ini_data = SaveIniSettingsToMemory(ctx, &ini_data_size);
     ImFileHandle f = ImFileOpen(ini_filename, "wt");
     if (!f)
         return;
@@ -11899,9 +11898,9 @@ void ImGui::SaveIniSettingsToDisk(const char* ini_filename)
 }
 
 // Call registered handlers (e.g. SettingsHandlerWindow_WriteAll() + custom handlers) to write their stuff into a text buffer
-const char* ImGui::SaveIniSettingsToMemory(size_t* out_size)
+const char* ImGui::SaveIniSettingsToMemory(ImGuiContext* ctx, size_t* out_size)
 {
-    ImGuiContext& g = *GImGui;
+    ImGuiContext& g = *ctx;
     g.SettingsDirtyTimer = 0.0f;
     g.SettingsIniData.Buf.resize(0);
     g.SettingsIniData.Buf.push_back(0);
@@ -12648,10 +12647,10 @@ void ImGui::ShowMetricsWindow(bool* p_open)
             ClearIniSettings();
         SameLine();
         if (SmallButton("Save to memory"))
-            SaveIniSettingsToMemory();
+            SaveIniSettingsToMemory(GImGui); // FIXME: Remove GImGui.
         SameLine();
         if (SmallButton("Save to disk"))
-            SaveIniSettingsToDisk(g.IO.IniFilename);
+            SaveIniSettingsToDisk(GImGui, g.IO.IniFilename); // FIXME: Remove GImGui.
         SameLine();
         if (g.IO.IniFilename)
             Text("\"%s\"", g.IO.IniFilename);

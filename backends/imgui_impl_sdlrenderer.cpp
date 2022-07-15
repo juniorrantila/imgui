@@ -70,13 +70,13 @@ bool ImGui_ImplSDLRenderer_Init(ImGuiContext* ctx, SDL_Renderer* renderer)
     return true;
 }
 
-void ImGui_ImplSDLRenderer_Shutdown()
+void ImGui_ImplSDLRenderer_Shutdown(ImGuiContext* ctx)
 {
-    ImGui_ImplSDLRenderer_Data* bd = ImGui_ImplSDLRenderer_GetBackendData();
+    ImGuiIO& io = ctx->IO;
+    ImGui_ImplSDLRenderer_Data* bd = (ImGui_ImplSDLRenderer_Data*)io.BackendRendererUserData;
     IM_ASSERT(bd != NULL && "No renderer backend to shutdown, or already shutdown?");
-    ImGuiIO& io = ImGui::GetIO();
 
-    ImGui_ImplSDLRenderer_DestroyDeviceObjects();
+    ImGui_ImplSDLRenderer_DestroyDeviceObjects(ctx);
 
     io.BackendRendererName = NULL;
     io.BackendRendererUserData = NULL;
@@ -227,10 +227,10 @@ bool ImGui_ImplSDLRenderer_CreateFontsTexture()
     return true;
 }
 
-void ImGui_ImplSDLRenderer_DestroyFontsTexture()
+void ImGui_ImplSDLRenderer_DestroyFontsTexture(ImGuiContext* ctx)
 {
-    ImGuiIO& io = ImGui::GetIO();
-    ImGui_ImplSDLRenderer_Data* bd = ImGui_ImplSDLRenderer_GetBackendData();
+    ImGuiIO& io = ctx->IO;
+    ImGui_ImplSDLRenderer_Data* bd = (ImGui_ImplSDLRenderer_Data*)io.BackendRendererUserData;
     if (bd->FontTexture)
     {
         io.Fonts->SetTexID(0);
@@ -244,7 +244,7 @@ bool ImGui_ImplSDLRenderer_CreateDeviceObjects()
     return ImGui_ImplSDLRenderer_CreateFontsTexture();
 }
 
-void ImGui_ImplSDLRenderer_DestroyDeviceObjects()
+void ImGui_ImplSDLRenderer_DestroyDeviceObjects(ImGuiContext* ctx)
 {
-    ImGui_ImplSDLRenderer_DestroyFontsTexture();
+    ImGui_ImplSDLRenderer_DestroyFontsTexture(ctx);
 }

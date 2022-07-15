@@ -60,7 +60,7 @@
 //  2017-08-25: Inputs: MousePos set to -FLT_MAX,-FLT_MAX when mouse is unavailable/missing (instead of -1,-1).
 //  2016-10-15: Misc: Added a void* user_data parameter to Clipboard function handlers.
 
-#include "imgui.h"
+#include "imgui_internal.h"
 #include "imgui_impl_sdl.h"
 
 // SDL
@@ -314,9 +314,9 @@ bool ImGui_ImplSDL2_ProcessEvent(const SDL_Event* event)
     return false;
 }
 
-static bool ImGui_ImplSDL2_Init(SDL_Window* window, SDL_Renderer* renderer)
+static bool ImGui_ImplSDL2_Init(ImGuiContext* ctx, SDL_Window* window, SDL_Renderer* renderer)
 {
-    ImGuiIO& io = ImGui::GetIO();
+    ImGuiIO& io = ctx->IO;
     IM_ASSERT(io.BackendPlatformUserData == NULL && "Already initialized a platform backend!");
 
     // Check and store if we are on a SDL backend that supports global mouse position
@@ -361,7 +361,7 @@ static bool ImGui_ImplSDL2_Init(SDL_Window* window, SDL_Renderer* renderer)
     SDL_SysWMinfo info;
     SDL_VERSION(&info.version);
     if (SDL_GetWindowWMInfo(window, &info))
-        ImGui::GetMainViewport()->PlatformHandleRaw = (void*)info.info.win.window;
+        ctx->Viewports[0]->PlatformHandleRaw = (void*)info.info.win.window;
 #else
     (void)window;
 #endif
@@ -378,36 +378,36 @@ static bool ImGui_ImplSDL2_Init(SDL_Window* window, SDL_Renderer* renderer)
     return true;
 }
 
-bool ImGui_ImplSDL2_InitForOpenGL(SDL_Window* window, void* sdl_gl_context)
+bool ImGui_ImplSDL2_InitForOpenGL(ImGuiContext* ctx, SDL_Window* window, void* sdl_gl_context)
 {
     IM_UNUSED(sdl_gl_context); // Viewport branch will need this.
-    return ImGui_ImplSDL2_Init(window, NULL);
+    return ImGui_ImplSDL2_Init(ctx, window, NULL);
 }
 
-bool ImGui_ImplSDL2_InitForVulkan(SDL_Window* window)
+bool ImGui_ImplSDL2_InitForVulkan(ImGuiContext* ctx, SDL_Window* window)
 {
 #if !SDL_HAS_VULKAN
     IM_ASSERT(0 && "Unsupported");
 #endif
-    return ImGui_ImplSDL2_Init(window, NULL);
+    return ImGui_ImplSDL2_Init(ctx, window, NULL);
 }
 
-bool ImGui_ImplSDL2_InitForD3D(SDL_Window* window)
+bool ImGui_ImplSDL2_InitForD3D(ImGuiContext* ctx, SDL_Window* window)
 {
 #if !defined(_WIN32)
     IM_ASSERT(0 && "Unsupported");
 #endif
-    return ImGui_ImplSDL2_Init(window, NULL);
+    return ImGui_ImplSDL2_Init(ctx, window, NULL);
 }
 
-bool ImGui_ImplSDL2_InitForMetal(SDL_Window* window)
+bool ImGui_ImplSDL2_InitForMetal(ImGuiContext* ctx, SDL_Window* window)
 {
-    return ImGui_ImplSDL2_Init(window, NULL);
+    return ImGui_ImplSDL2_Init(ctx, window, NULL);
 }
 
-bool ImGui_ImplSDL2_InitForSDLRenderer(SDL_Window* window, SDL_Renderer* renderer)
+bool ImGui_ImplSDL2_InitForSDLRenderer(ImGuiContext* ctx, SDL_Window* window, SDL_Renderer* renderer)
 {
-    return ImGui_ImplSDL2_Init(window, renderer);
+    return ImGui_ImplSDL2_Init(ctx, window, renderer);
 }
 
 void ImGui_ImplSDL2_Shutdown()

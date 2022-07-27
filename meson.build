@@ -1,4 +1,6 @@
-sdl2_dep = dependency('sdl2')
+
+cxx = meson.get_compiler('cpp')
+libSDL2 = cxx.find_library('SDL2')
 
 libImgui = library('imgui', [
   'imgui.cpp',
@@ -10,4 +12,4 @@ libImgui = library('imgui', [
   'backends/imgui_impl_sdlrenderer.cpp',
   ],
   include_directories: '.',
-  dependencies: sdl2_dep)
+  dependencies: libSDL2)
